@@ -1,3 +1,15 @@
+#Self warning: Make sure the thing is directed into the CORRECT GODDAMN FOLDER GOOD GRIEF
+'''So I have finally completed my wonderful kuwahara filter to a certain extent.
+I must say that for a filter of such mathematical complexity, I am satisfied with the result.
+All the further things I do to this filter will just be minor improvements. Something I learned is,
+that the smoothing really does give an extra paintstroke effect, I feel like before I was kind of 
+not trusting it to be of any use. Also, this thing with downscaling the image when it's large is really
+extremely useful, without it, the user either has to put up with a rediculous runtime, 
+or decide themself if they think their image is large (which no normal human really wants to do.). And
+now we are at a nice point where the filter doesn't take forever on large images (some time, yes,
+but not infinetly long) and works nicely with the smoothing round. So long for now, and my next challenge
+shall be the Anisotropic Kuwahara. Wish me luck ;) !'''
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -11,22 +23,45 @@ while (r < 1 or r > 10):
     print("Value out of range of niceness, retry.")
     r = int(input("Enter brush size (recommended around 2-8): ")) 
 
-goatedarray = goatedarray[:, :, :3] #removed fourth "a" channel
+if len(changeable.shape) >= 3:
+    changeable = changeable[:, :, :3] #removed fourth "a" channel if necessary and not a black white photo
+
+rawheight, rawwidth = changeable.shape[:2]
+total_pixels = rawheight * rawwidth
+
+print(f"\nLoaded image with {total_pixels:,} pixels.")
+
+#Make sure the image doesn't overload mah poor cpu
+if total_pixels < 500_000:
+    scale = 1
+    print("You picked a small ahh image. Running at full resolution.")
+elif total_pixels < 3_000_000:
+    scale = 2
+    print("Your image is a little fat. Slicing by 2 for the sake of my CPU.")
+elif total_pixels < 10_000_000:
+    scale = 3
+    print("That's a fat ahh pic. Imma have to slice it by 3 'cuz its gonna be a while otherwise.")
+else:
+    scale = 4
+    print("What's that, a full petabyte? Slicing by 4 if you wanna see your image in this lifetime.")
+
+changeable = changeable[::scale, ::scale] #then actually remember to slice it sheesh
+
 #print(f"Original shape: {goatedarray.shape}")
-padified = np.pad(goatedarray, ((r, r), (r, r), (0, 0)), mode = 'edge') #add padded version
+padified = np.pad(changeable, ((r, r), (r, r), (0, 0)), mode = 'edge') #add padded version
 #print(f"Padded shape: {padified.shape}")
 
 
 
-frstrounded = np.zeros_like(goatedarray) #finally written result here
+frstrounded = np.zeros_like(changeable) #finally written result here
 
 #Get original height/width
-height, width = goatedarray.shape[:2]
+height, width = changeable.shape[:2]
 
 for y in range(height):
     for x in range(width):
         
-        # In the padded array ->current pixel's actual center is shifted by r
+        #In the padded array ->current pixel's actual center is shifted by r
         cy, cx = y + r, x + r
         
         #time to sliceeee
@@ -73,6 +108,5 @@ if (scnd == "Yes"):
     print("Smoothing complete y'all ungrateful uglies.")
     plt.imsave('outp.jpg', scndrounded) #save basically yeah
 else: 
+    print("That's all ya get then.")
     plt.imsave('outp.jpg', frstrounded) #save directly after first pass
-
-
