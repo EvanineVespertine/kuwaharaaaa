@@ -15,7 +15,12 @@ import numpy as np
 
 goatedarray = plt.imread('inp.jpg') #convert to array with width, hight and rgb channels
 changeable = np.copy(goatedarray).astype(float) #make copy to modify
+chk = np.max(changeable)
+if chk > 1.0:
+   changeable = changeable/255.0 
 
+#print("max=", np.max(changeable))
+#print("min=", np.min(changeable))
 
 #space for mah math
 r = int(input("Enter brush size (recommended around 2-8): ")) #brushstroke radius
