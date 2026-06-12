@@ -5,61 +5,93 @@ Below I have posted a full documentation on how I did it. For my source code, ju
 
 P. S.: Please don't mind my questionable variable names ;)
 
-Overview
+P. S. S.: Had to change this to be accurate again because I updated my code.
 
-Step 1: Setup and Image Loading
-The Imports: We import matplotlib.pyplot for reading/saving the image and numpy for handling the heavy 3D matrix math.
+Here I have written a story for all of you called the Kuwahara Quest
 
-Loading the Array (goatedarray): The target image (inp.jpg) is converted into a 3D NumPy array consisting of Height, Width, and Color Channels.
 
-Creating a Working Copy: A copy (changeable) is immediately created and cast to float to prevent any read-only errors during mathematical manipulation.
+THE GREAT KUWAHARA QUEST
 
-Step 2: User Interaction & Validation
-Dynamic Radius (r): Instead of hardcoding the brush size, the script asks the user to define the intensity of the oil painting effect.
+Prologue: The Dark Ages (A Brief History of Our Suffering)
+Before we had the glorious, optimized engine of today, the prototype phase was a lawless wasteland. If future developers read this, know that we bled to get here.
 
-Input Validation: A while loop acts as a safeguard. If the user inputs a radius less than 1 or greater than 10 (which would either crash the script or cause massive rendering lag), the terminal prompts them to retry until a valid integer is provided.
+The Ghost Image Era: We initially tried to feed it PNGs (ikr stupid). Matplotlib laughed in our faces, divided everything by 255, and handed us back digital ghosts and pure white canvases because a 0.0039 opacity is mathematically pitch black, yay.
 
-Step 3: Data Cleaning and Matrix Padding
-Alpha Channel Purge: goatedarray = goatedarray[:, :, :3] forcefully drops any invisible 4th Alpha channel data, ensuring the variance math is strictly dealing with Red, Green, and Blue values.
+The FileNotFound Crisis: Python gaslit us into thinking our files didn't exist, when in reality, our terminal was just chilling in a parent directory. Always check your working directory.
+It hides strange secrets. And check it well, 'cuz I did check it and still didn't see it. Perhaps I'm just blind.
 
-Building the Bumper (padified): np.pad builds a protective border around the entire image. The thickness of this border matches the user's radius (r). We use mode='edge' to duplicate the outermost pixels, preventing black borders from skewing the color math.
+The 4th Channel of Doom: We realized PNGs carry a cursed "Alpha" channel that absolutely nukes variance math.
 
-Step 4: The Core Kuwahara Logic (Pass 1)
-An empty canvas (frstrounded) is created to hold the new pixels. The script then iterates through every single y (row) and x (column) of the original image dimensions.
+But we survived. And out of the ashes, this script was born.
 
-For every pixel, the following sequence occurs:
+CHAPTER 0
+Initializing the goatedarray
+The script kicks off by dragging my chosen image (inp.jpg) into the Python realm and converting it into a 3D NumPy matrix (Height x Width x RGB Colors).
 
-Coordinate Shifting: The algorithm adjusts the (y, x) coordinates by + r to match the shifted dimensions of the padified array.
+Because we don't want to accidentally corrupt our original data, we immediately spawn changeable, a perfect clone cast as a float so we have room to do heavy decimal math without breaking the integers.
 
-Quadrant Slicing: Four distinct overlapping squares are carved out around the center pixel:
+Next, we establish the Brush Size (r). We politely ask the user for a radius between 2 and 8. If they act up and enter a 12, the while loop essentially calls them an idiot ("Value out of range of niceness") and traps them until they pick a valid number.
 
-tl (Top-Left)
+Sanity Check: We forcefully strip away that cursed 4th Alpha channel with changeable[:, :, :3], just in case a stray PNG wanders into the code.
 
-tr (Top-Right)
+CHAPTER 1
+The Save My CPU Diet Plan
+Pure Python for loops are known to be sluggish. If you were to drop a raw, uncompressed 16-megapixel photo straight outa your files a into this matrix, your computer would kinda melt trying to calculate the variance of 15 million pixels.
 
-bl (Bottom-Left)
+To prevent spontaneous combustion, the script calculates the total_pixels (usually hate this kind of snake_case but once, in I while, I am allowed to make exceptions, right?) and puts the image on a forced "diet":
 
-br (Bottom-Right)
+< 500k pixels: Small ahh image. It runs raw and unfiltered (scale = 1).
 
-Variance Calculation (notnices): np.var() measures how chaotic or "noisy" the RGB colors are inside each of the four quadrants.
+< 3M pixels: A little fat. The array is mathematically sliced in half (scale = 2).
 
-Mean Calculation (avs): np.mean() collapses the 3D grid of each quadrant to find its average flat Red, Green, and Blue color.
+< 10M pixels: Fat ahh pic. The array is sliced by 3.
 
-The Winner Takes All: np.argmin() identifies which quadrant has the lowest variance (the "smoothest" area). The average color of that winning quadrant is assigned to the (y, x) coordinate on the frstrounded output canvas.
+> 10M pixels: What's that, a full petabyte? The array is violently smooshed to a quarter of its size (scale = 4) so you actually get to see your output before you die.
 
-Step 5: The Interactive Smoothing Pass (Pass 2)
-Because the standard Kuwahara uses rigid squares, the output can look blocky. The script pauses and asks the user if they want to run a smoothing round (Yes/No).
+CHAPTER 2
+Building the Bumper Cars
+If you look for a 5x5 window around a pixel at the literal edge of the image (0, 0), Python will look into the void, panic, and crash (as we know our computers).
+
+To fix this, we create padified. We use np.pad to build a protective bumper around the entire image. The thickness of this border matches your brush radius (r). We use mode = 'edge' so it duplicates the outer pixels instead of slapping a black frame around the image, which would ruin the color math (or any other math).
+
+CHAPTER 3
+The Meat & Potatoes
+We generate an empty void called frstrounded to hold our final masterpiece. Then, the nested Y and X for loops begin their march across every single pixel of the original image dimensions.
+
+For every pixel, the algorithm does the following:
+
+-> Shifts Coordinates: It looks at cy, cx (center Y, center X) inside the bigger, padified array so we don't hit the walls.
+
+-> Slices the Quadrants: It carves out four distinct squares around that center point: Top-Left (tl), Top-Right (tr), Bottom-Left (bl), and Bottom-Right (br).
+
+-> Calculates Chaos (notnices): Using np.var(), it calculates the variance. This tells us exactly how "noisy" or chaotic the colors are inside each of those four boxes.
+
+-> Calculates Averages (avs): Using np.mean(), it squishes the 3D grid down to find the average, flat Red, Green, and Blue color of each box.
+
+Paints the Pixel: np.argmin finds the index of the quadrant with the lowest variance (the smoothest, least chaotic patch of color). It grabs that winning quadrant's average color from avs and slaps it onto our frstrounded canvas.
+
+CHAPTER 4
+The Smoothing Pass for y'all ungratefull uglies.
+Because standard Kuwahara relies on perfectly rigid mathematical squares, the output can look like it was built in Minecraft (I've never played btw, yeah ikr, crazy sht). The script pauses and asks the user if they want a smoothing round.
 
 If "Yes":
 
-A second empty canvas (scndrounded) is generated.
+We define radiusblur = 1, which creates a microscopic 3x3 window.
 
-The blocky frstrounded matrix is padded with a tiny radiusblur = 1 bumper.
+We pad the blocky frstrounded image again, creating blurpadding.
 
-The script runs a fast 3x3 Box Blur algorithm: it looks at a 3x3 window around every pixel, averages all 9 colors together, and paints that blended color onto scndrounded.
+We loop over the image again, looking at that tiny 3x3 window for every pixel, averaging all 9 colors together, and writing it to scndrounded. This acts like a wet brush, melting the harsh 90-degree corners into fluid, buttery oil paint strokes.
 
-The script prints a highly necessary success message ("Smoothing complete y'all ungrateful uglies.") and saves the blurred image as outp.jpg.
+The script insults the user  and saves the final file to outp.jpg.
 
-If "No" (or anything else):
+If "No" (or literally anything else):
 
-The script skips the blur logic entirely and instantly saves the raw, blocky frstrounded matrix as outp.jpg.
+"That's all ya get then."
+
+It skips the blur and saves the chunky, blocky, first-pass matrix to outp.jpg.
+
+
+
+✩ VOILÀ THE END ✩
+
+So yeah, that's all ya get. Hope you had fun reading!
