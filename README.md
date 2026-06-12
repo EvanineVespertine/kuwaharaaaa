@@ -47,7 +47,7 @@ To prevent spontaneous combustion, the script calculates the total_pixels (usual
 
 < 10M pixels: Fat ahh pic. The array is sliced by 3.
 
-> 10M pixels: What's that, a full petabyte? The array is violently smooshed to a quarter of its size (scale = 4) so you actually get to see your output before you die.
+smaller than 10M pixels: What's that, a full petabyte? The array is violently smooshed to a quarter of its size (scale = 4) so you actually get to see your output before you die.
 
 CHAPTER 2
 Building the Bumper Cars
